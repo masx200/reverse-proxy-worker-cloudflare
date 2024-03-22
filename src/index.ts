@@ -103,8 +103,21 @@ async function handleRequest(request: Request, env: Env) {
   const getRequest = new Request(url.href, {
     method: "GET",
     body: null,
+    headers: request.headers,
   });
-
+  console.log(
+    JSON.stringify(
+      {
+        request: {
+          method: getRequest.method,
+          url: getRequest.url,
+          Headers: Object.fromEntries(getRequest.headers),
+        },
+      },
+      null,
+      2,
+    ),
+  );
   // Fetch response from origin server.
   return await fetch(getRequest, {
     cf: {
