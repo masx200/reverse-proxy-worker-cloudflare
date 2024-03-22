@@ -16,6 +16,19 @@ export default {
     env: Env,
     ctx: ExecutionContext,
   ): Promise<Response> {
+    console.log(
+      JSON.stringify(
+        {
+          request: {
+            method: request.method,
+            url: request.url,
+            Headers: Object.fromEntries(request.headers),
+          },
+        },
+        null,
+        2,
+      ),
+    );
     const url = new URL(request.url);
     if (url.pathname !== "/dns-query") {
       return new Response("not found", { status: 404 });
@@ -26,7 +39,7 @@ export default {
     if (request.method !== "GET") {
       return new Response("method not allowed", { status: 405 });
     }
-    return handleGet(env, url);
+    return handleGet(env, url, request);
   },
 }; /**
  * 处理GET请求的函数。
@@ -35,14 +48,27 @@ export default {
  * @returns 返回一个Promise，该Promise解析为从原始服务器获取的响应。
  */
 
-async function handleGet(env: Env, url: URL) {
+async function handleGet(env: Env, url: URL, request: Request) {
   const upurl = new URL(`${env.DOH_ENDPOINT}`);
   upurl.search = url.search;
   const getRequest = new Request(upurl.href, {
     method: "GET",
     body: null,
+    headers: request.headers,
   });
-
+  console.log(
+    JSON.stringify(
+      {
+        request: {
+          method: getRequest.method,
+          url: getRequest.url,
+          Headers: Object.fromEntries(getRequest.headers),
+        },
+      },
+      null,
+      2,
+    ),
+  );
   // Fetch response from origin server.
   return await fetch(getRequest, {
     cf: {
