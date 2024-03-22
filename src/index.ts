@@ -1,7 +1,38 @@
+import { Strict_Transport_Security } from "./CloudflareMiddleWare";
+
 export interface Env {
   DOH_ENDPOINT: string;
 }
-
+async function fetchMiddleWare(
+  request: Request,
+  env: Env,
+  ctx: ExecutionContext,
+): Promise<Response> {
+  console.log(
+    JSON.stringify(
+      {
+        request: {
+          method: request.method,
+          url: request.url,
+          Headers: Object.fromEntries(request.headers),
+        },
+      },
+      null,
+      2,
+    ),
+  );
+  const url = new URL(request.url);
+  if (url.pathname !== "/dns-query") {
+    return new Response("not found", { status: 404 });
+  }
+  if (request.method === "POST") {
+    return handleRequest(request, env);
+  }
+  if (request.method !== "GET") {
+    return new Response("method not allowed", { status: 405 });
+  }
+  return handleGet(env, url, request);
+}
 export default {
   /**
    * 一个用于处理网络请求的函数。
@@ -16,30 +47,12 @@ export default {
     env: Env,
     ctx: ExecutionContext,
   ): Promise<Response> {
-    console.log(
-      JSON.stringify(
-        {
-          request: {
-            method: request.method,
-            url: request.url,
-            Headers: Object.fromEntries(request.headers),
-          },
-        },
-        null,
-        2,
-      ),
+    return Strict_Transport_Security<Env>(
+      request,
+      env,
+      ctx,
+      async () => await fetchMiddleWare(request, env, ctx),
     );
-    const url = new URL(request.url);
-    if (url.pathname !== "/dns-query") {
-      return new Response("not found", { status: 404 });
-    }
-    if (request.method === "POST") {
-      return handleRequest(request, env);
-    }
-    if (request.method !== "GET") {
-      return new Response("method not allowed", { status: 405 });
-    }
-    return handleGet(env, url, request);
   },
 }; /**
  * 处理GET请求的函数。
