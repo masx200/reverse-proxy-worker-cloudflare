@@ -3,6 +3,14 @@ export interface Env {
 }
 
 export default {
+  /**
+   * 一个用于处理网络请求的函数。
+   *
+   * @param request - 表示客户端发起的请求对象。
+   * @param env - 包含环境特定信息的对象。
+   * @param ctx - 执行上下文，提供额外的请求处理功能。
+   * @returns 返回一个承诺（Promise），该承诺解析为一个响应对象（Response）。
+   */
   async fetch(
     request: Request,
     env: Env,
@@ -15,9 +23,34 @@ export default {
     if (request.method === "POST") {
       return handleRequest(request, env);
     }
-    return fetch(request);
+    if (request.method !== "GET") {
+      return new Response("method not allowed", { status: 405 });
+    }
+    return handleGet(env, url);
   },
-};
+}; /**
+ * 处理GET请求的函数。
+ * @param env 包含环境配置的对象，例如DOH_ENDPOINT（DNS over HTTPS 终端点）等。
+ * @param url 用户请求的URL对象。
+ * @returns 返回一个Promise，该Promise解析为从原始服务器获取的响应。
+ */
+
+async function handleGet(env: Env, url: URL) {
+  const upurl = new URL(`${env.DOH_ENDPOINT}`);
+  upurl.search = url.search;
+  const getRequest = new Request(upurl.href, {
+    method: "GET",
+    body: null,
+  });
+
+  // Fetch response from origin server.
+  return await fetch(getRequest, {
+    cf: {
+      cacheEverything: true,
+    },
+  });
+}
+
 /**
  * 处理DNS请求的函数。
  * @param request 原始的请求对象，需要是一个POST请求，其中包含未编码的DNS查询。
@@ -27,6 +60,9 @@ export default {
 async function handleRequest(request: Request, env: Env) {
   // Base64 encode request body.
   const body = await request.arrayBuffer();
+  if (body.byteLength === 0) {
+    return new Response("bad request", { status: 400 });
+  }
   const encodedBody = base64Encode(body);
 
   // Create a request URL with encoded body as query parameter.
