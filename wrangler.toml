@@ -1,9 +1,5 @@
-name = "doh-cache"
+name = "doh-cache-worker-cf"
 main = "src/index.ts"
 compatibility_date = "2022-05-12"
 usage_model = "bundled"
-
-route = "https://dns.paesa.es/dns-query"
-
-[vars]
-DOH_ENDPOINT = "dns.paesa.es/dns-query"
+send_metrics = false
