@@ -121,9 +121,11 @@ async function handleRequest(request: Request, env: Env) {
   const headers = new Headers(request.headers);
   headers.append(
     "Forwarded",
-    `proto=${new URL(url).protocol.slice(0, -1)};host=${
-      new URL(url).hostname
-    };by=${url.host};for=${request.headers.get("cf-connecting-ip")}`,
+    `proto=${new URL(request.url).protocol.slice(0, -1)};host=${
+      new URL(request.url).hostname
+    };by=${new URL(request.url).hostname};for=${
+      request.headers.get("cf-connecting-ip")
+    }`,
   );
   // Create a GET request from the original POST request.
   const getRequest = new Request(url.href, {
