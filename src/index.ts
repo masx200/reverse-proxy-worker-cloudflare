@@ -51,10 +51,17 @@ export default {
 async function handleGet(env: Env, url: URL, request: Request) {
   const upurl = new URL(`${env.DOH_ENDPOINT}`);
   upurl.search = url.search;
+  const headers = new Headers(request.headers);
+  headers.append(
+    "Forwarded",
+    `proto=${new URL(url).protocol.slice(0, -1)};host=${
+      new URL(url).hostname
+    };by=${url.host};for=${request.headers.get("cf-connecting-ip")}`,
+  );
   const getRequest = new Request(upurl.href, {
     method: "GET",
     body: null,
-    headers: request.headers,
+    headers: headers,
   });
   console.log(
     JSON.stringify(
@@ -98,12 +105,18 @@ async function handleRequest(request: Request, env: Env) {
   if (!url.href.startsWith("https://")) {
     throw Error(`The DOH_ENDPOINT must be a HTTPS URL.`);
   }
-
+  const headers = new Headers(request.headers);
+  headers.append(
+    "Forwarded",
+    `proto=${new URL(url).protocol.slice(0, -1)};host=${
+      new URL(url).hostname
+    };by=${url.host};for=${request.headers.get("cf-connecting-ip")}`,
+  );
   // Create a GET request from the original POST request.
   const getRequest = new Request(url.href, {
     method: "GET",
     body: null,
-    headers: request.headers,
+    headers: headers,
   });
   console.log(
     JSON.stringify(
