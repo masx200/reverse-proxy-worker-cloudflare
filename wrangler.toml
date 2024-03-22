@@ -3,3 +3,6 @@ main = "src/index.ts"
 compatibility_date = "2022-05-12"
 usage_model = "bundled"
 send_metrics = false
+
+[vars]
+DOH_ENDPOINT = "https://doh.pub/dns-query"
