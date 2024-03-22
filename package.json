@@ -1,6 +1,6 @@
 {
   "private": true,
-  "name": "doh-cache",
+  "name": "@masx200/doh-cache-worker-cf",
   "version": "1.0.0",
   "description": "A Cloudflare Worker to make DNS over HTTPS requests cacheable at edge.",
   "main": "src/index.js",
