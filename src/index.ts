@@ -62,7 +62,10 @@ export default {
  */
 
 async function handleGet(env: Env, url: URL, request: Request) {
-  const upurl = new URL(`${env.DOH_ENDPOINT}`);
+  const upurl = new URL(`${
+    env.DOH_ENDPOINT ??
+      "https://doh.pub/dns-query"
+  }`);
   upurl.search = url.search;
   const headers = new Headers(request.headers);
   headers.append(
@@ -112,7 +115,10 @@ async function handleRequest(request: Request, env: Env) {
   const encodedBody = base64Encode(body);
 
   // Create a request URL with encoded body as query parameter.
-  const url = new URL(`${env.DOH_ENDPOINT}`);
+  const url = new URL(`${
+    env.DOH_ENDPOINT ??
+      "https://doh.pub/dns-query"
+  }`);
   url.searchParams.append("dns", encodedBody);
 
   if (!url.href.startsWith("https://")) {
