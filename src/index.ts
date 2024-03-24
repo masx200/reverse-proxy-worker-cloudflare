@@ -1,6 +1,6 @@
 import { Strict_Transport_Security } from "./CloudflareMiddleWare";
 //@ts-ignore
-import welcome from "welcome.html";
+import welcome from "./welcome.html";
 export interface Env {
   token: string;
 }
