@@ -1,7 +1,8 @@
 import { Strict_Transport_Security } from "./CloudflareMiddleWare";
-
+//@ts-ignore
+import welcome from "welcome.html";
 export interface Env {
-  DOH_ENDPOINT: string;
+  token: string;
 }
 async function fetchMiddleWare(
   request: Request,
@@ -21,17 +22,66 @@ async function fetchMiddleWare(
       2,
     ),
   );
-  const url = new URL(request.url);
-  if (url.pathname !== "/dns-query") {
-    return new Response("not found", { status: 404 });
+
+  const nextUrl = new URL(request.url);
+  const token = env.token;
+  if (nextUrl.pathname.startsWith("/token/" + token + "/http/")) {
+    let url = new URL(
+      "http://" +
+        nextUrl.pathname.slice(6 + ("/token/" + token).length),
+    );
+    url.search = nextUrl.search;
+    /* 循环处理多重前缀 */
+    while (url.pathname.startsWith("/token/" + token + "/http/")) {
+      url = new URL(
+        "http://" +
+          url.pathname.slice(6 + ("/token/" + token).length),
+      );
+      url.search = nextUrl.search;
+    }
+    // requestHeaders.set("host", url.hostname);
+    url.search = new URL(request.url).search;
+    return await ReverseProxy(request, url);
   }
-  if (request.method === "POST") {
-    return handleRequest(request, env);
+  if (nextUrl.pathname.startsWith("/token/" + token + "/https/")) {
+    let url = new URL(
+      "https://" +
+        nextUrl.pathname.slice(
+          6 + 1 + ("/token/" + token).length,
+        ),
+    );
+    /* 添加search */
+    url.search = nextUrl.search;
+    /* 循环处理多重前缀 */
+    while (url.pathname.startsWith("/token/" + token + "/https/")) {
+      url = new URL(
+        "https://" +
+          url.pathname.slice(
+            6 + 1 + ("/token/" + token).length,
+          ),
+      );
+      /* 添加search */
+      url.search = nextUrl.search;
+    }
+    console.log({ url: url.href, method: request.method });
+
+    // requestHeaders.set("host", url.hostname);
+
+    // url.protocol = "https";
+    // url.hostname = hostname;
+    // url.port = String(443);
+    //   url.pathname = url.pathname; //.replace(/^\//, '');
+
+    // return NextResponse.rewrite(url, {
+    //   headers: requestHeaders,
+    // });
+    return await ReverseProxy(request, url);
   }
-  if (request.method !== "GET") {
-    return new Response("method not allowed", { status: 405 });
-  }
-  return handleGet(env, url, request);
+  return new Response(welcome, {
+    headers: {
+      "content-type": "text/html",
+    },
+  });
 }
 export default {
   /**
@@ -61,119 +111,45 @@ export default {
  * @returns 返回一个Promise，该Promise解析为从原始服务器获取的响应。
  */
 
-async function handleGet(env: Env, url: URL, request: Request) {
-  const upurl = new URL(`${
-    env.DOH_ENDPOINT ??
-      "https://doh.pub/dns-query"
-  }`);
-  upurl.search = url.search;
-  const headers = new Headers(request.headers);
-  headers.append(
-    "Forwarded",
-    `proto=${new URL(url).protocol.slice(0, -1)};host=${
-      new URL(url).hostname
-    };by=${url.host};for=${request.headers.get("cf-connecting-ip")}`,
-  );
-  const getRequest = new Request(upurl.href, {
-    method: "GET",
-    body: null,
-    headers: headers,
-  });
-  console.log(
-    JSON.stringify(
-      {
-        request: {
-          method: getRequest.method,
-          url: getRequest.url,
-          Headers: Object.fromEntries(getRequest.headers),
+export async function ReverseProxy(
+  request: Request,
+  url: URL,
+): Promise<Response> {
+  try {
+    const upurl = new URL(url);
+
+    const headers = new Headers(request.headers);
+    headers.append(
+      "Forwarded",
+      `proto=${new URL(url).protocol.slice(0, -1)};host=${
+        new URL(url).hostname
+      };by=${url.host};for=${request.headers.get("cf-connecting-ip")}`,
+    );
+    const getRequest = new Request(upurl.href, {
+      method: request.method,
+      body: request.body,
+      headers: headers,
+      redirect: request.headers.get("x-proxy-redirect") ?? "manual",
+    });
+    console.log(
+      JSON.stringify(
+        {
+          request: {
+            method: getRequest.method,
+            url: getRequest.url,
+            Headers: Object.fromEntries(getRequest.headers),
+          },
         },
-      },
-      null,
-      2,
-    ),
-  );
-  // Fetch response from origin server.
-  return await fetch(getRequest, {
-    cf: {
-      cacheEverything: true,
-    },
-  });
-}
-
-/**
- * 处理DNS请求的函数。
- * @param request 原始的请求对象，需要是一个POST请求，其中包含未编码的DNS查询。
- * @param env 包含环境配置的对象，例如DOH_ENDPOINT（DNS over HTTPS 终端）的URL。
- * @returns 返回一个Promise，该Promise解析为从原始服务器获取的响应。
- */
-async function handleRequest(request: Request, env: Env) {
-  // Base64 encode request body.
-  const body = await request.arrayBuffer();
-  if (body.byteLength === 0) {
-    return new Response("bad request", { status: 400 });
+        null,
+        2,
+      ),
+    );
+    // Fetch response from origin server.
+    return await fetch(getRequest, {});
+  } catch (error) {
+    console.error(error);
+    return new Response("bad gateway" + "\n" + String(error), {
+      status: 502,
+    });
   }
-  const encodedBody = base64Encode(body);
-
-  // Create a request URL with encoded body as query parameter.
-  const url = new URL(`${
-    env.DOH_ENDPOINT ??
-      "https://doh.pub/dns-query"
-  }`);
-  url.searchParams.append("dns", encodedBody);
-
-  if (!url.href.startsWith("https://")) {
-    throw Error(`The DOH_ENDPOINT must be a HTTPS URL.`);
-  }
-  const headers = new Headers(request.headers);
-  headers.append(
-    "Forwarded",
-    `proto=${new URL(request.url).protocol.slice(0, -1)};host=${
-      new URL(request.url).hostname
-    };by=${new URL(request.url).hostname};for=${
-      request.headers.get("cf-connecting-ip")
-    }`,
-  );
-  // Create a GET request from the original POST request.
-  const getRequest = new Request(url.href, {
-    method: "GET",
-    body: null,
-    headers: headers,
-  });
-  console.log(
-    JSON.stringify(
-      {
-        request: {
-          method: getRequest.method,
-          url: getRequest.url,
-          Headers: Object.fromEntries(getRequest.headers),
-        },
-      },
-      null,
-      2,
-    ),
-  );
-  // Fetch response from origin server.
-  return await fetch(getRequest, {
-    cf: {
-      cacheEverything: true,
-    },
-  });
-}
-/**
- * 将 ArrayBuffer 对象编码为 Base64 字符串。
- * @param byteArray {ArrayBuffer} - 需要进行 Base64 编码的 ArrayBuffer 对象。
- * @returns {string} 编码后的 Base64 字符串。
- */
-function base64Encode(byteArray: ArrayBuffer): string {
-  const buffer = new Uint8Array(byteArray);
-  const binaryString = buffer.reduce(
-    (str, byte) => str + String.fromCharCode(byte),
-    "",
-  );
-  const encoded = btoa(binaryString)
-    .replace(/\+/g, "-")
-    .replace(/\//g, "_")
-    .replace(/=/g, "");
-
-  return encoded;
 }
