@@ -77,11 +77,16 @@ async function fetchMiddleWare(
     // });
     return await ReverseProxy(request, url);
   }
-  return new Response(welcome, {
-    headers: {
-      "content-type": "text/html",
-    },
-  });
+  if (nextUrl.pathname === "/") {
+    return new Response(welcome, {
+      headers: {
+        "content-type": "text/html",
+      },
+    });
+  }
+
+  //not found
+  return new Response("Not Found", { status: 404 });
 }
 export default {
   /**
