@@ -1,24 +1,26 @@
-# ⚡ doh-cache ⚡
+# reverse-proxy-worker-cloudflare
 
-[![Deploy to Cloudflare Workers](https://github.com/milgradesec/cfworker-doh-cache/actions/workflows/deploy.yml/badge.svg?branch=main)](https://github.com/milgradesec/cfworker-doh-cache/actions/workflows/deploy.yml)
-![GitHub](https://img.shields.io/github/license/milgradesec/cfworker-doh-cache)
-
-👷 `doh-cache` is a Cloudflare Worker to make DNS over HTTPS requests cacheable
-at edge.
-
-🚀 Running in production at **<https://dns.paesa.es/dns-query>**
-
-## How it Works
-
-`doh-cache` transforms a DoH POST request to a DoH GET request and uses the
-Cache API to store the response in Cloudflare's cache. Drastically reducing
-response latency and server costs by using Cloudflare global network to serve
-cached responses.
+A reverse proxy worker for Cloudflare Workers.
 
 ## License
 
 MIT License
 
-# 设置环境变量
+# 设置环境变量访问秘钥
 
-`DOH_ENDPOINT=https://doh.pub/dns-query`
+`token=token123456`
+
+# 访问地址:
+
+```
+http://localhost:8787/token/token123456/https/www.360.cn
+```
+
+```
+http://localhost:8787/token/token123456/http/example.com
+```
+
+# 设定代理行为的重定向方式
+
+可以设定请求头中的字段"x-proxy-redirect"为"error" | "follow" |
+"manual"来设定代理行为的重定向方式.
