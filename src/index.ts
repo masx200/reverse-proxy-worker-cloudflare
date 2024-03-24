@@ -121,8 +121,8 @@ export async function ReverseProxy(
     const headers = new Headers(request.headers);
     headers.append(
       "Forwarded",
-      `proto=${new URL(url).protocol.slice(0, -1)};host=${
-        new URL(url).hostname
+      `proto=${new URL(request.url).protocol.slice(0, -1)};host=${
+        new URL(request.url).hostname
       };by=${url.host};for=${request.headers.get("cf-connecting-ip")}`,
     );
     const getRequest = new Request(upurl.href, {
