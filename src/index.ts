@@ -132,7 +132,7 @@ export async function ReverseProxy(
     );
     const getRequest = new Request(upurl.href, {
       method: request.method,
-      body: request.body,
+      body: ["GET", "HEAD"].includes(request.method) ? undefined : request.body,
       headers: headers,
       redirect: request.headers.get("x-proxy-redirect") ?? "manual",
     });
