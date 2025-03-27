@@ -1,12 +1,11 @@
-import { Env } from '.';
-import { ReverseProxy } from './ReverseProxy';
-//@ts-ignore
-import welcome from './welcome.html';
+import { Env } from ".";
+import { ReverseProxy } from "./ReverseProxy";
 
 export async function fetchMiddleWare(
   request: Request,
   env: Env,
   ctx: ExecutionContext,
+  next: () => Promise<Response>,
 ): Promise<Response> {
   console.log(
     JSON.stringify(
@@ -24,18 +23,18 @@ export async function fetchMiddleWare(
 
   const nextUrl = new URL(request.url);
   const token = env.token;
-  if (!token){
-    return new Response('Not Found', { status: 404 });
+  if (!token) {
+    return next();
   }
-  if (nextUrl.pathname.startsWith('/token/' + token + '/http/')) {
+  if (nextUrl.pathname.startsWith("/token/" + token + "/http/")) {
     let url = new URL(
-      'http://' + nextUrl.pathname.slice(6 + ('/token/' + token).length),
+      "http://" + nextUrl.pathname.slice(6 + ("/token/" + token).length),
     );
     url.search = nextUrl.search;
     /* 循环处理多重前缀 */
-    while (url.pathname.startsWith('/token/' + token + '/http/')) {
+    while (url.pathname.startsWith("/token/" + token + "/http/")) {
       url = new URL(
-        'http://' + url.pathname.slice(6 + ('/token/' + token).length),
+        "http://" + url.pathname.slice(6 + ("/token/" + token).length),
       );
       url.search = nextUrl.search;
     }
@@ -43,16 +42,16 @@ export async function fetchMiddleWare(
     url.search = new URL(request.url).search;
     return await ReverseProxy(request, url);
   }
-  if (nextUrl.pathname.startsWith('/token/' + token + '/https/')) {
+  if (nextUrl.pathname.startsWith("/token/" + token + "/https/")) {
     let url = new URL(
-      'https://' + nextUrl.pathname.slice(6 + 1 + ('/token/' + token).length),
+      "https://" + nextUrl.pathname.slice(6 + 1 + ("/token/" + token).length),
     );
     /* 添加search */
     url.search = nextUrl.search;
     /* 循环处理多重前缀 */
-    while (url.pathname.startsWith('/token/' + token + '/https/')) {
+    while (url.pathname.startsWith("/token/" + token + "/https/")) {
       url = new URL(
-        'https://' + url.pathname.slice(6 + 1 + ('/token/' + token).length),
+        "https://" + url.pathname.slice(6 + 1 + ("/token/" + token).length),
       );
       /* 添加search */
       url.search = nextUrl.search;
@@ -69,14 +68,5 @@ export async function fetchMiddleWare(
     // });
     return await ReverseProxy(request, url);
   }
-  if (nextUrl.pathname === '/') {
-    return new Response(welcome, {
-      headers: {
-        'content-type': 'text/html',
-      },
-    });
-  }
-
-  //not found
-  return new Response('Not Found', { status: 404 });
+  return next();
 }

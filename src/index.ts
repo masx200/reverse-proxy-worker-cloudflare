@@ -1,5 +1,7 @@
-import { Strict_Transport_Security } from './Strict_Transport_Security';
-import { fetchMiddleWare } from './fetchMiddleWare';
+import { fetchMiddleWare } from "./fetchMiddleWare";
+//@ts-ignore
+import welcome from "./welcome.html";
+import { Strict_Transport_Security } from "./Strict_Transport_Security";
 //@ts-ignore
 export interface Env {
   token: string;
@@ -22,7 +24,25 @@ export default {
       request,
       env,
       ctx,
-      async () => await fetchMiddleWare(request, env, ctx),
+      async (): Promise<Response> =>
+        await fetchMiddleWare(
+          request,
+          env,
+          ctx,
+          async (): Promise<Response> => {
+            const nextUrl = new URL(request.url);
+            if (nextUrl.pathname === "/") {
+              return new Response(welcome, {
+                headers: {
+                  "content-type": "text/html",
+                },
+              });
+            }
+
+            //not found
+            return new Response("Not Found", { status: 404 });
+          },
+        ),
     );
   },
 };

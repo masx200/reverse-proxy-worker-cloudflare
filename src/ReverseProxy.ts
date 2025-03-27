@@ -7,14 +7,16 @@ export async function ReverseProxy(
 
     const headers = new Headers(request.headers);
     headers.append(
-      'Forwarded',
-      `proto=${new URL(request.url).protocol.slice(0, -1)};host=${new URL(request.url).hostname};by=${url.host};for=${request.headers.get('cf-connecting-ip')}`,
+      "Forwarded",
+      `proto=${new URL(request.url).protocol.slice(0, -1)};host=${
+        new URL(request.url).hostname
+      };by=${url.host};for=${request.headers.get("cf-connecting-ip")}`,
     );
     const getRequest = new Request(upurl.href, {
       method: request.method,
-      body: ['GET', 'HEAD'].includes(request.method) ? undefined : request.body,
+      body: ["GET", "HEAD"].includes(request.method) ? undefined : request.body,
       headers: headers,
-      redirect: request.headers.get('x-proxy-redirect') ?? 'manual',
+      redirect: request.headers.get("x-proxy-redirect") ?? "manual",
     });
     console.log(
       JSON.stringify(
@@ -33,7 +35,7 @@ export async function ReverseProxy(
     return await fetch(getRequest, {});
   } catch (error) {
     console.error(error);
-    return new Response('bad gateway' + '\n' + String(error), {
+    return new Response("bad gateway" + "\n" + String(error), {
       status: 502,
     });
   }
