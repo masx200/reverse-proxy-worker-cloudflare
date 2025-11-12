@@ -18,7 +18,7 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          environment: production
+          # environment: production
           # 从 GitHub Secrets 传递 token 变量
           vars: |
             token
