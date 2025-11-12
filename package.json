@@ -6,16 +6,21 @@
   "main": "src/index.js",
   "scripts": {
     "dev": "wrangler dev",
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "vitest",
+    "test:ui": "vitest --ui",
+    "test:run": "vitest run",
     "format": "prettier --write '**/*.{js,ts,css,json,md}'",
     "deploy": "wrangler deploy"
   },
   "author": "milgradesec <38557680+milgradesec@users.noreply.github.com>",
   "license": "MIT",
   "devDependencies": {
-    "@cloudflare/workers-types": "^4.20231002.0",
-    "prettier": "^3.0.0",
+    "@cloudflare/vitest-pool-workers": "^0.8.71",
+    "@cloudflare/workers-types": "^4.20250724.0",
+    "prettier": "^3.6.2",
     "typescript": "^5.2.2",
-    "wrangler": "4.47.0"
+    "vitest": "^3.1.4",
+    "wrangler": "^4.26.0",
+    "eslint": "^9.31.0"
   }
 }

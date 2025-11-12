@@ -23,7 +23,7 @@ jobs:
           # 从 GitHub Secrets 传递 token 变量
           vars: |
             token
-          secrets: |
-            token
+          # secrets: |
+          #   token
         env:
           token: ${{ secrets.WORKER_TOKEN }}

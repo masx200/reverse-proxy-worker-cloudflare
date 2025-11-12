@@ -1,9 +1,10 @@
 name = "reverse-proxy-worker-cloudflare"
 main = "src/index.ts"
-compatibility_date = "2022-05-12"
-usage_model = "bundled"
+# compatibility_date = "2022-05-12"
+compatibility_date = "2022-10-31"
+# usage_model = "bundled"
 send_metrics = false
-
+# compatibility_flags = ["export_commonjs_default"]
 # [env.production]
 # name = "reverse-proxy-worker-cloudflare"
 
