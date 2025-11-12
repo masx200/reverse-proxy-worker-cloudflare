@@ -12,6 +12,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+      - run: npm install --save-dev wrangler@4
 
       - name: Publish
         uses: cloudflare/wrangler-action@v3.14.1
