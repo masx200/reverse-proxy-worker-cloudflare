@@ -4,11 +4,8 @@ compatibility_date = "2022-05-12"
 usage_model = "bundled"
 send_metrics = false
 
-[vars]
-token = "token123456"
+# [vars]
+# token = "token123456"
 # wrangler.toml (wrangler v3.88.0^)
 [observability.logs]
 enabled = true
-
-
-
