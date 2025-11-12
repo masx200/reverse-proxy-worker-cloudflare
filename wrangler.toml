@@ -5,7 +5,7 @@ usage_model = "bundled"
 send_metrics = false
 
 [env.production]
-name = "reverse-proxy-worker-cloudflare"
+# name = "reverse-proxy-worker-cloudflare"
 
 # [vars]
 # token = "token123456"
