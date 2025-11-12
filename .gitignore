@@ -13,3 +13,4 @@ node_modules/
 *.lock
 *.log
 .wrangler
+.claude/settings.local.json
