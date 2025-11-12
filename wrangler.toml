@@ -6,10 +6,6 @@ send_metrics = false
 
 [env.production]
 name = "reverse-proxy-worker-cloudflare"
-main = "src/index.ts"
-compatibility_date = "2022-05-12"
-usage_model = "bundled"
-send_metrics = false
 
 # [vars]
 # token = "token123456"
