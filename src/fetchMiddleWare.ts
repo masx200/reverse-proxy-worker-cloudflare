@@ -1,5 +1,5 @@
-import { Env } from ".";
-import { ReverseProxy } from "./ReverseProxy";
+import { Env } from "./index.ts";
+import { ReverseProxy } from "./ReverseProxy.ts";
 
 export async function fetchMiddleWare(
   request: Request,
@@ -40,7 +40,7 @@ export async function fetchMiddleWare(
     }
     // requestHeaders.set("host", url.hostname);
     url.search = new URL(request.url).search;
-    return await ReverseProxy(request, url);
+    return await ReverseProxy(request, url, token);
   }
   if (nextUrl.pathname.startsWith("/token/" + token + "/https/")) {
     let url = new URL(
@@ -66,7 +66,7 @@ export async function fetchMiddleWare(
     // return NextResponse.rewrite(url, {
     //   headers: requestHeaders,
     // });
-    return await ReverseProxy(request, url);
+    return await ReverseProxy(request, url, token);
   }
   return next();
 }
