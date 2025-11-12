@@ -1,3 +1,4 @@
+[env.production]
 name = "reverse-proxy-worker-cloudflare"
 main = "src/index.ts"
 compatibility_date = "2022-05-12"
