@@ -39,6 +39,16 @@ function convertToLocalUrl(
     `/token/${token}/${protocol}/${host}${path}`;
 }
 
+/**
+ * Cloudflare Workers 内部无法解析的域名（Error 1049），
+ * 需要替换为对应的 IP 地址，并通过 Host 头保留原始主机名
+ */
+const UNRESOLVABLE_HOSTS: Record<string, string> = {
+  "one.one.one.one": "1.1.1.1",
+  "family.cloudflare-dns.com": "1.0.0.3",
+  "security.cloudflare-dns.com": "1.0.0.2",
+};
+
 export async function ReverseProxy(
   request: Request,
   url: URL,
@@ -46,6 +56,11 @@ export async function ReverseProxy(
 ): Promise<Response> {
   try {
     const upurl = new URL(url);
+
+    const resolvedIp = UNRESOLVABLE_HOSTS[upurl.hostname];
+    if (resolvedIp) {
+      upurl.hostname = resolvedIp;
+    }
 
     const headers = new Headers(request.headers);
     headers.append(
