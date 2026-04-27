@@ -1,41 +1,657 @@
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Cloudflare Workers Playground</title>
-    <link
-      rel="stylesheet"
-      href="https://playground.devprod.cloudflare.dev/welcome-style.css"
-    />
-  </head>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>CDN Global - 下一代内容分发网络</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
 
-  <body>
-    <div class="flares">
-      <img src="https://playground.devprod.cloudflare.dev/flares.png" />
+        body {
+            background: #ffffff;
+            color: #111;
+            line-height: 1.6;
+        }
+
+        a {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        /* ===== 顶部导航 ===== */
+        header {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            background: #fff;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 60px;
+            z-index: 1000;
+        }
+
+        header h1 {
+            font-size: 20px;
+            letter-spacing: 2px;
+        }
+
+        nav a {
+            margin-left: 30px;
+            font-size: 14px;
+            transition: 0.3s;
+        }
+
+        nav a:hover {
+            opacity: 0.6;
+        }
+
+        /* ===== Hero ===== */
+        .hero {
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 0 20px;
+        }
+
+        .hero h2 {
+            font-size: 56px;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+
+        .hero p {
+            font-size: 18px;
+            color: #555;
+            margin-bottom: 40px;
+        }
+
+        .btn {
+            border: 1px solid #000;
+            padding: 12px 30px;
+            display: inline-block;
+            transition: 0.3s;
+        }
+
+        .btn:hover {
+            background: #000;
+            color: #fff;
+        }
+
+        /* ===== 通用section ===== */
+        section {
+            padding: 100px 60px;
+            max-width: 1200px;
+            margin: auto;
+        }
+
+        h3 {
+            font-size: 32px;
+            margin-bottom: 20px;
+        }
+
+        .sub {
+            color: #666;
+            margin-bottom: 50px;
+        }
+
+        /* ===== 服务 ===== */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 40px;
+        }
+
+        .card {
+            border: 1px solid #eee;
+            padding: 30px;
+            transition: 0.3s;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            border-color: #000;
+        }
+
+        /* ===== 数据展示 ===== */
+        .stats {
+            display: flex;
+            justify-content: space-between;
+            text-align: center;
+            flex-wrap: wrap;
+        }
+
+        .stat {
+            flex: 1;
+            min-width: 200px;
+            margin: 20px 0;
+        }
+
+        .stat h4 {
+            font-size: 40px;
+        }
+
+        /* ===== 客户 ===== */
+        .clients {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 30px;
+            text-align: center;
+        }
+
+        .client {
+            border: 1px solid #eee;
+            padding: 20px;
+        }
+
+        /* ===== DoH 使用说明 ===== */
+        .usage-block {
+            background: #f9f9f9;
+            border-left: 3px solid #000;
+            padding: 20px 24px;
+            margin-bottom: 20px;
+        }
+
+        .usage-block h5 {
+            font-size: 15px;
+            margin-bottom: 8px;
+            letter-spacing: 0.5px;
+        }
+
+        .usage-block code {
+            display: block;
+            font-family: "SFMono-Regular", Consolas, monospace;
+            font-size: 13px;
+            color: #222;
+            word-break: break-all;
+            line-height: 1.8;
+        }
+
+        /* ===== 工作原理步骤 ===== */
+        .steps {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 30px;
+            counter-reset: step-counter;
+        }
+
+        .step {
+            border: 1px solid #eee;
+            padding: 28px 24px;
+            position: relative;
+            transition: 0.3s;
+        }
+
+        .step:hover {
+            border-color: #000;
+        }
+
+        .step::before {
+            counter-increment: step-counter;
+            content: "0" counter(step-counter);
+            font-size: 36px;
+            font-weight: 700;
+            color: #ebebeb;
+            display: block;
+            margin-bottom: 14px;
+            line-height: 1;
+        }
+
+        .step p {
+            font-size: 14px;
+            color: #555;
+            margin-top: 8px;
+        }
+
+        /* ===== FAQ ===== */
+        .faq-list {
+            border-top: 1px solid #eee;
+        }
+
+        .faq-item {
+            border-bottom: 1px solid #eee;
+            padding: 24px 0;
+        }
+
+        .faq-item summary {
+            font-size: 16px;
+            cursor: pointer;
+            list-style: none;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 500;
+        }
+
+        .faq-item summary::-webkit-details-marker { display: none; }
+
+        .faq-item summary::after {
+            content: "+";
+            font-size: 22px;
+            font-weight: 300;
+            transition: transform 0.2s;
+        }
+
+        .faq-item[open] summary::after {
+            transform: rotate(45deg);
+        }
+
+        .faq-item p {
+            margin-top: 14px;
+            color: #555;
+            font-size: 14px;
+            line-height: 1.8;
+        }
+
+        /* ===== 价格方案 ===== */
+        .plans {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 30px;
+        }
+
+        .plan {
+            border: 1px solid #eee;
+            padding: 36px 28px;
+            transition: 0.3s;
+        }
+
+        .plan.featured {
+            border-color: #000;
+        }
+
+        .plan:hover {
+            transform: translateY(-4px);
+        }
+
+        .plan .price {
+            font-size: 38px;
+            font-weight: 700;
+            margin: 16px 0 6px;
+        }
+
+        .plan .price span {
+            font-size: 14px;
+            font-weight: 400;
+            color: #888;
+        }
+
+        .plan ul {
+            margin-top: 20px;
+            list-style: none;
+            font-size: 14px;
+            color: #555;
+            line-height: 2.2;
+        }
+
+        .plan ul li::before {
+            content: "✓  ";
+            color: #000;
+            font-weight: 600;
+        }
+
+        .plan .btn {
+            margin-top: 28px;
+            display: block;
+            text-align: center;
+        }
+
+        /* ===== footer ===== */
+        footer {
+            padding: 60px;
+            border-top: 1px solid #eee;
+            color: #777;
+            font-size: 14px;
+        }
+
+        .footer-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr;
+            gap: 40px;
+            max-width: 1200px;
+            margin: 0 auto 40px;
+        }
+
+        .footer-brand p {
+            margin-top: 12px;
+            line-height: 1.8;
+            max-width: 280px;
+        }
+
+        .footer-col h6 {
+            font-size: 13px;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            color: #111;
+            margin-bottom: 16px;
+        }
+
+        .footer-col a {
+            display: block;
+            margin-bottom: 10px;
+            font-size: 13px;
+            color: #777;
+            transition: color 0.2s;
+        }
+
+        .footer-col a:hover { color: #111; }
+
+        .footer-bottom {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding-top: 30px;
+            border-top: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        /* ===== 响应式 ===== */
+        @media (max-width: 768px) {
+            header {
+                padding: 20px;
+            }
+
+            section {
+                padding: 80px 20px;
+            }
+
+            .hero h2 {
+                font-size: 36px;
+            }
+
+            .footer-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .footer-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<!-- ===== 导航 ===== -->
+<header>
+    <h1>CDN GLOBAL</h1>
+    <nav>
+        <a href="#usage">使用说明</a>
+        <a href="#how">工作原理</a>
+        <a href="#faq">FAQ</a>
+        <a href="#pricing">定价</a>
+        <a href="https://github.com/" target="_blank">GitHub</a>
+    </nav>
+</header>
+
+<!-- ===== 首页大屏 ===== -->
+<div class="hero">
+    <div>
+        <h2>全球加速 · 极致体验</h2>
+        <p>构建下一代 CDN 网络，让每一次访问都更快、更稳定、更安全</p>
+        <a class="btn" href="#">立即开始</a>
     </div>
-    <main>
-      <div class="workers-logo"></div>
-      <p>
-        Welcome! Use this Playground to test drive a Worker, create a demo to
-        share online, and when ready deploy directly to the edge by setting up a
-        Cloudflare account.
-      </p>
-      <h1>What is a Worker?</h1>
-      <p>
-        A Cloudflare Worker is JavaScript code you write that handles your web
-        site's HTTP traffic directly in Cloudflare's edge locations around the
-        world, allowing you to locate code close to your end users in order to
-        respond to them more quickly
-      </p>
-      <h1>Try it yourself</h1>
-      <p>
-        On your left is a sample Worker that is running on this site. You can
-        edit it live and see the results here. Edit the path above to /api to
-        see how the example Worker handles different routes. You can also edit
-        the code to see what's possible and bring your next idea to life.
-      </p>
-    </main>
-  </body>
+</div>
+
+<!-- ===== 服务 ===== -->
+<section>
+    <h3>核心产品</h3>
+    <p class="sub">覆盖全球的高性能内容分发网络</p>
+
+    <div class="grid">
+        <div class="card">
+            <h4>静态加速</h4>
+            <p>全球节点缓存，毫秒级响应，提升网站访问速度。</p>
+        </div>
+        <div class="card">
+            <h4>动态加速</h4>
+            <p>智能路由优化，降低延迟，保障实时业务稳定。</p>
+        </div>
+        <div class="card">
+            <h4>DDoS 防护</h4>
+            <p>Tbps级防护能力，自动识别并清洗攻击流量。</p>
+        </div>
+        <div class="card">
+            <h4>边缘计算</h4>
+            <p>在全球边缘节点运行代码，提升响应速度与灵活性。</p>
+        </div>
+    </div>
+</section>
+
+<!-- ===== 数据 ===== -->
+<section>
+    <h3>全球网络</h3>
+    <p class="sub">覆盖全球多个地区的高性能节点</p>
+
+    <div class="stats">
+        <div class="stat">
+            <h4>200+</h4>
+            <p>全球节点</p>
+        </div>
+        <div class="stat">
+            <h4>100Tbps</h4>
+            <p>带宽储备</p>
+        </div>
+        <div class="stat">
+            <h4>99.99%</h4>
+            <p>服务可用性</p>
+        </div>
+        <div class="stat">
+            <h4>5ms</h4>
+            <p>平均延迟</p>
+        </div>
+    </div>
+</section>
+
+<!-- ===== 技术优势 ===== -->
+<section>
+    <h3>技术优势</h3>
+    <p class="sub">以技术驱动性能与安全</p>
+
+    <div class="grid">
+        <div class="card">
+            <h4>智能调度</h4>
+            <p>基于AI的流量调度系统，实现最优路径选择。</p>
+        </div>
+        <div class="card">
+            <h4>多层缓存</h4>
+            <p>分层缓存架构，提高命中率与访问速度。</p>
+        </div>
+        <div class="card">
+            <h4>安全体系</h4>
+            <p>WAF + Bot防护，全方位保障业务安全。</p>
+        </div>
+    </div>
+</section>
+
+<!-- ===== 客户 ===== -->
+<section>
+    <h3>客户案例</h3>
+    <p class="sub">被全球企业信赖</p>
+
+    <div class="clients">
+        <div class="client">TechCorp</div>
+        <div class="client">MediaNet</div>
+        <div class="client">GameX</div>
+        <div class="client">ShopPlus</div>
+        <div class="client">CloudAI</div>
+        <div class="client">FinEdge</div>
+    </div>
+</section>
+
+<!-- ===== DoH 使用说明 ===== -->
+<section id="usage">
+    <h3>如何使用 DoH 服务</h3>
+    <p class="sub">将以下地址填写到你的客户端或操作系统 DNS 设置中，即可启用加密 DNS</p>
+
+    <div class="usage-block">
+        <h5>DNS over HTTPS — GET</h5>
+        <code>https://&lt;your-worker&gt;.workers.dev/dns-query?dns=&lt;base64url-encoded-query&gt;</code>
+    </div>
+    <div class="usage-block">
+        <h5>DNS over HTTPS — POST</h5>
+        <code>POST https://&lt;your-worker&gt;.workers.dev/dns-query<br>Content-Type: application/dns-message</code>
+    </div>
+    <div class="usage-block">
+        <h5>在 Firefox 中启用</h5>
+        <code>设置 → 常规 → 网络设置 → 启用基于 HTTPS 的 DNS → 自定义 → 填入上方地址</code>
+    </div>
+    <div class="usage-block">
+        <h5>在 Windows 11 中启用</h5>
+        <code>设置 → 网络和 Internet → 以太网/Wi-Fi → DNS 服务器分配 → 手动 → 加密首选 → 填入上方地址</code>
+    </div>
+</section>
+
+<!-- ===== 工作原理 ===== -->
+<section id="how">
+    <h3>工作原理</h3>
+    <p class="sub">四步实现边缘 DNS 缓存加速</p>
+
+    <div class="steps">
+        <div class="step">
+            <strong>接收请求</strong>
+            <p>Worker 接收来自客户端的 DoH GET 或 POST 请求，解析 DNS 查询报文。</p>
+        </div>
+        <div class="step">
+            <strong>规范化为 GET</strong>
+            <p>POST 请求的二进制 body 被 Base64url 编码后附加为 <code>?dns=</code> 参数，统一转换为可缓存的 GET 形式。</p>
+        </div>
+        <div class="step">
+            <strong>边缘缓存查询</strong>
+            <p>借助 Cloudflare Cache API（<code>cacheEverything: true</code>），命中缓存的请求直接在边缘节点响应，无需回源。</p>
+        </div>
+        <div class="step">
+            <strong>负载均衡回源</strong>
+            <p>缓存未命中时，从配置的多个上游 DoH 节点中随机选择并重试，全部失败时返回 502。</p>
+        </div>
+    </div>
+</section>
+
+<!-- ===== FAQ ===== -->
+<section id="faq">
+    <h3>常见问题</h3>
+    <p class="sub">快速解答你的疑惑</p>
+
+    <div class="faq-list">
+        <details class="faq-item">
+            <summary>DoH 和传统 DNS 有什么区别？</summary>
+            <p>传统 DNS 使用明文 UDP/TCP（端口 53）传输，查询内容在网络层完全可见，容易被运营商或中间人劫持。DNS over HTTPS 将查询封装在标准 HTTPS 请求中，具备加密传输和完整性校验，有效防止窃听与污染。</p>
+        </details>
+        <details class="faq-item">
+            <summary>如何配置多个上游 DoH 服务器？</summary>
+            <p>在 Wrangler 的环境变量 <code>DOH_ENDPOINT</code> 中填写 JSON 数组即可，例如：<code>["https://doh.pub/dns-query","https://dns.alidns.com/dns-query"]</code>。Worker 会随机打乱顺序后逐一尝试，直到获得有效响应。</p>
+        </details>
+        <details class="faq-item">
+            <summary>缓存的 TTL 是多少？</summary>
+            <p>缓存时长完全遵循上游 DoH 服务器返回的 DNS TTL 值（体现在 HTTP 响应的 <code>Cache-Control</code> 头中），Cloudflare 边缘节点会据此自动管理缓存生命周期，Worker 本身不另行干预。</p>
+        </details>
+        <details class="faq-item">
+            <summary>如何更改监听路径？</summary>
+            <p>修改环境变量 <code>DOH_PATHNAME</code> 即可，默认值为 <code>/dns-query</code>。本地开发时在项目根目录的 <code>.dev.vars</code> 文件中覆盖此变量，无需修改 <code>wrangler.toml</code>。</p>
+        </details>
+        <details class="faq-item">
+            <summary>是否支持 DNS over TLS（DoT）？</summary>
+            <p>本项目专注于 DoH（DNS over HTTPS），不支持 DoT（端口 853）。Cloudflare Workers 本身也仅暴露 HTTP(S) 端口，若需 DoT 支持，请考虑在自有服务器上部署专用代理。</p>
+        </details>
+        <details class="faq-item">
+            <summary>部署后如何验证服务正常？</summary>
+            <p>可使用 curl 测试：<code>curl -H "accept: application/dns-json" "https://&lt;your-worker&gt;.workers.dev/dns-query?name=example.com&type=A"</code>，或直接访问根路径 <code>/</code> 查看本欢迎页面。</p>
+        </details>
+    </div>
+</section>
+
+<!-- ===== 价格方案 ===== -->
+<section id="pricing">
+    <h3>部署方案</h3>
+    <p class="sub">完全基于 Cloudflare Workers，按实际用量计费</p>
+
+    <div class="plans">
+        <div class="plan">
+            <div>免费版</div>
+            <div class="price">¥0 <span>/ 月</span></div>
+            <ul>
+                <li>每日 10 万次请求</li>
+                <li>Cloudflare 全球边缘缓存</li>
+                <li>支持 GET / POST DoH</li>
+                <li>单个上游 DoH 节点</li>
+            </ul>
+            <a class="btn" href="#">立即部署</a>
+        </div>
+        <div class="plan featured">
+            <div>Workers 付费版</div>
+            <div class="price">$5 <span>/ 月起</span></div>
+            <ul>
+                <li>每月 1000 万次请求起</li>
+                <li>超出按量计费（极低单价）</li>
+                <li>多上游负载均衡</li>
+                <li>自定义域名绑定</li>
+                <li>实时日志分析</li>
+            </ul>
+            <a class="btn" href="#">查看定价</a>
+        </div>
+        <div class="plan">
+            <div>企业版</div>
+            <div class="price">联系我们</div>
+            <ul>
+                <li>无限请求量</li>
+                <li>SLA 99.99% 保障</li>
+                <li>专属技术支持</li>
+                <li>定制化部署方案</li>
+                <li>私有化部署选项</li>
+            </ul>
+            <a class="btn" href="#">获取报价</a>
+        </div>
+    </div>
+</section>
+
+<!-- ===== Footer ===== -->
+<footer>
+    <div class="footer-grid">
+        <div class="footer-brand">
+            <strong style="font-size:18px;letter-spacing:2px;">CDN GLOBAL</strong>
+            <p>基于 Cloudflare Workers 的下一代 DNS over HTTPS 缓存加速服务。让每一次 DNS 查询更快、更私密、更安全。</p>
+        </div>
+        <div class="footer-col">
+            <h6>产品</h6>
+            <a href="#">DNS over HTTPS</a>
+            <a href="#">边缘缓存</a>
+            <a href="#">负载均衡</a>
+            <a href="#">DDoS 防护</a>
+        </div>
+        <div class="footer-col">
+            <h6>开发者</h6>
+            <a href="#">快速开始</a>
+            <a href="#">API 文档</a>
+            <a href="#">GitHub</a>
+            <a href="#">更新日志</a>
+        </div>
+        <div class="footer-col">
+            <h6>支持</h6>
+            <a href="#">常见问题</a>
+            <a href="#">状态页面</a>
+            <a href="#">隐私政策</a>
+            <a href="#">服务条款</a>
+        </div>
+    </div>
+    <div class="footer-bottom">
+        <span>© 2026 CDN Global. All rights reserved.</span>
+        <span>Built on Cloudflare Workers &nbsp;·&nbsp; Open Source on GitHub</span>
+    </div>
+</footer>
+
+</body>
 </html>
